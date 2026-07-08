@@ -1,7 +1,16 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize the Gemini AI client using the API key from .env
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Lazy-initialize the Gemini client to ensure dotenv has loaded
+let genAI = null;
+const getGenAI = () => {
+    if (!genAI) {
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error('GEMINI_API_KEY is not set in environment variables');
+        }
+        genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    }
+    return genAI;
+};
 
 /**
  * Generates a human-readable summary of multiple feedback texts using Gemini AI
@@ -12,11 +21,6 @@ const generateSummary = async (feedbackTexts) => {
     // Guard: ensure we have something to summarize
     if (!feedbackTexts || feedbackTexts.length === 0) {
         throw new Error('No feedback texts provided to summarize');
-    }
-
-    // Guard: check if API key is configured
-    if (!process.env.GEMINI_API_KEY) {
-        throw new Error('GEMINI_API_KEY is not set in environment variables');
     }
 
     // Format the feedback list as a numbered list for the prompt
@@ -38,7 +42,7 @@ Do not use bullet points. Write as a paragraph.`;
 
     try {
         // Use the free-tier compatible Gemini 1.5 Flash model
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = getGenAI().getGenerativeModel({ model: 'gemini-1.5-flash' });
 
         // Send the prompt to Gemini
         const result = await model.generateContent(prompt);

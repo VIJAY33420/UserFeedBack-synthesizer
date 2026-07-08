@@ -24,15 +24,13 @@ const protect = async (req, res, next) => {
                 return next(new Error('User belonging to this token no longer exists.'));
             }
 
-            next();
+            return next();
         } catch (error) {
             console.error('Token verification failed:', error.message);
             res.status(401); // Unauthorized
             return next(new Error('Not authorized, token failed'));
         }
-    }
-
-    if (!token) {
+    } else {
         res.status(401); // Unauthorized
         return next(new Error('Not authorized, no token provided'));
     }
