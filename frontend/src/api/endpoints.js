@@ -4,6 +4,7 @@ export const api = {
   auth: {
     login: (credentials) => apiClient.post('/api/auth/login', credentials).then(res => res.data),
     signup: (userData) => apiClient.post('/api/auth/signup', userData).then(res => res.data),
+    googleLogin: (data) => apiClient.post('/api/auth/google', data).then(res => res.data),
     getMe: () => apiClient.get('/api/auth/me').then(res => res.data.data),
   },
   feedback: {

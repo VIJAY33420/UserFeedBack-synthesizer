@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 /**
  * Helper function to generate a JWT token
@@ -86,6 +87,59 @@ const login = async (req, res, next) => {
 };
 
 /**
+ * POST /api/auth/google
+ * Authenticate user via Google and return a JWT token
+ */
+const googleLogin = async (req, res, next) => {
+    try {
+        const { token } = req.body;
+        
+        // Fetch user info from Google using access token
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+            res.status(401);
+            return next(new Error('Invalid Google token'));
+        }
+        
+        const data = await response.json();
+        const { email, name } = data;
+        
+        // Find user by email
+        let user = await User.findOne({ email });
+        
+        if (!user) {
+            // Create a new user with a random password
+            const randomPassword = crypto.randomBytes(16).toString('hex');
+            user = await User.create({
+                name: name || 'Google User',
+                email,
+                password: randomPassword
+            });
+        }
+        
+        // Generate JWT token
+        const jwtToken = generateToken(user._id);
+
+        res.status(200).json({
+            success: true,
+            token: jwtToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+/**
  * GET /api/auth/me
  * Fetch logged-in user's own profile using their token
  */
@@ -111,5 +165,6 @@ const getMe = async (req, res, next) => {
 module.exports = {
     signup,
     login,
+    googleLogin,
     getMe
 };

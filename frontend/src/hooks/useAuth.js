@@ -22,6 +22,16 @@ export const useSignup = () => {
   });
 };
 
+export const useGoogleLoginMutation = () => {
+  const setAuth = useAuthStore(state => state.setAuth);
+  return useMutation({
+    mutationFn: api.auth.googleLogin,
+    onSuccess: (data) => {
+      setAuth(data.user || { email: data.email }, data.token);
+    },
+  });
+};
+
 export const useUser = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const setUser = useAuthStore(state => state.setUser);
