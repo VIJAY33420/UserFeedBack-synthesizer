@@ -1,112 +1,92 @@
-# User Feedback Synthesizer - Backend
+# Traige - User Feedback Synthesizer 🛡️✨
 
-An intelligent, rule-based, and AI-powered backend designed for a hackathon. This system collects user feedback, processes it through an offline analytical pipeline (sentiment, clustering, urgency, duplicate detection, priority scoring), and layers a Google Gemini API summarization engine on top. Access is secured using a custom JWT-based authentication system.
+**Traige** is a state-of-the-art, intelligent feedback processing and summarization pipeline built for modern SaaS products. It features an offline processing engine (sentiment analysis, priority ranking, thematic clustering, and deduplication) overlaid with an advanced dual-engine AI summarization layer (supporting both **Grok (xAI)** and **Google Gemini**) with built-in offline mock fallbacks for resilient hackathon presentations.
 
 ---
 
-## 🚀 Key Features
+## 🎨 Premium UI Design
 
-### 1. Offline Feedback Processing Pipeline
-Whenever feedback is submitted, the backend automatically runs a multi-stage analysis pipeline without external API calls:
-*   **Sentiment Analysis:** Categorizes feedback as *Positive*, *Neutral*, or *Negative* alongside a numeric score using the offline `sentiment` package.
-*   **Urgency Detection:** Identifies critical issues based on a rule-based checklist of urgent keywords (e.g., `crash`, `broken`, `refund`, `urgent`).
-*   **Theme Clustering:** Dynamically groups feedback into categories: `Bug`, `Pricing`, `UX`, `Onboarding`, `Performance`, or `General`.
-*   **Word-Overlap Deduplication:** Uses a basic Jaccard word-overlap similarity check (threshold > 0.7) to identify and link near-duplicate comments back to their original entry (`isDuplicateOf`).
-*   **Priority Math:** Calculates a dynamic priority score between `0.0` and `1.0` using the formula:
+The user interface features a sleek, dark glassmorphic design inspired by modern developers' tools, utilizing the **Traige** brand logo color palette:
+*   **Cobalt Blue & Ice/Sky Blue** radial background glows.
+*   **Lightened Glass Borders** (`rgba(255, 255, 255, 0.24)`) for crisp layouts on dark canvases.
+*   **Custom Micro-animations & Typewriter Effects** powered by `framer-motion` to reveal AI insights with dynamic, staggering cascades.
+*   **Globally Styled Forms** with a custom dark theme styling for select/option tags, ensuring native rendering across all desktop and mobile browsers.
+
+---
+
+## 🚀 Key Features & AI Architecture
+
+### 1. Dual-Engine AI Summarization (Grok + Gemini)
+*   **Dynamic API Routing:** The backend checks your environment variables automatically. If `GROK_API_KEY` is present, it uses the **xAI Grok-2** model. If not, it falls back to **Google Gemini 1.5 Flash**.
+*   **Resilient Mock Fallbacks:** In case of network drops, rate limits, or missing billing credits (e.g., Grok 403 credit error), the controller catches the error and serves a high-fidelity mock summary offline.
+*   **Direct Payload Fallback:** Supports both database lookups (fetching reviews from MongoDB by product name) and raw review array postings (direct array synthesis), mapping `"reviews"` as a parameter fallback for custom testing payloads.
+
+### 2. Offline Feedback Analytical Pipeline
+Every feedback submission is parsed locally on the machine within milliseconds:
+*   **Sentiment Analysis:** Evaluates comments locally utilizing the offline `sentiment` package.
+*   **Thematic Clustering:** Dynamically tags comments into clusters (`Bug`, `Pricing`, `UX`, `Onboarding`, `Performance`, or `General`).
+*   **Jaccard Deduplication:** Applies word-overlap similarity check (> 0.7) to flag redundant submissions and link duplicates back to their original document (`isDuplicateOf`).
+*   **Priority Math:** Calculates a dynamic priority score ($0.0$ to $1.0$) using the formula:
     $$\text{Priority} = (\text{Frequency} \times 0.4) + (\text{Normalized Negative Sentiment} \times 0.4) + (\text{Urgency Score} \times 0.2)$$
-    *(where Frequency is based on the feedback density in that cluster)*
-*   **Action Tagging:** Maps priority scores to labels: `"Fix Now"`, `"Research"`, `"Nice to Have"`, or `"Low Priority"`.
-
-### 2. JWT-Based Authentication
-*   Fully secure signup and login using **JWT (JSON Web Tokens)** and **Bcrypt** for password hashing.
-*   Secure endpoints: Only authenticated users can submit feedback or request summaries.
-*   Tracks ownership by binding feedback directly to a user using the `createdBy` property.
-
-### 3. AI-Powered Summaries (Gemini API)
-*   Integrates Google's **Gemini 1.5 Flash** (via `@google/generative-ai`) to summarize multiple feedback entries for a given product.
-*   Generates a concise, 3-5 sentence report outlining core user grievances and positive highlights.
+*   **Action Tagging:** Maps priority to tags: `"Fix Now"`, `"Research"`, `"Nice to Have"`, or `"Low Priority"`.
 
 ---
 
-## 📁 Directory Structure
+## 🗺️ Navbar Features & Pages
 
-```text
-Backend/
-├── src/
-│   ├── config/
-│   │   └── db.js               # MongoDB connection
-│   ├── controllers/
-│   │   ├── authController.js     # User signup, login, profile fetch
-│   │   ├── feedbackController.js # Feedback creation & metrics queries
-│   │   └── summaryController.js  # Gemini AI summary endpoint
-│   ├── middlewares/
-│   │   ├── authMiddleware.js     # JWT verification middleware
-│   │   ├── errorHandler.js       # Centralized error handler
-│   │   ├── validateAuth.js       # Auth payload check
-│   │   └── validateFeedback.js   # Feedback text validation
-│   ├── models/
-│   │   ├── Feedback.js           # Feedback Schema
-│   │   └── User.js               # User Schema
-│   ├── routes/
-│   │   ├── authRoutes.js         # /api/auth routes
-│   │   ├── feedbackRoutes.js     # /api/feedback routes
-│   │   └── summaryRoutes.js      # /api/summary routes
-│   ├── services/
-│   │   ├── clusterService.js     # Keyword cluster matching
-│   │   ├── geminiService.js      # Google AI Studio API wrapper
-│   │   ├── priorityService.js    # Urgency & Priority calculations
-│   │   └── sentimentService.js   # Offline sentiment wrapper
-│   ├── utils/
-│   │   └── duplicateChecker.js   # Jaccard similarity checker
-│   └── app.js                  # Express middleware & routes mounting
-├── .env                        # Local configurations (ignored by git)
-├── package.json                # Project dependencies
-└── server.js                   # Entry point
-```
+| Tab / Page | Description | How It Works |
+| :--- | :--- | :--- |
+| 📊 **Dashboard** | Core operational dashboard. | Displays key volume stats, average sentiment indexes, and recent logs. Contains the **Synthesize Feedback** widget where judges can input reviews and watch the typewriter animation reveal AI key problems in real-time. |
+| ⚡ **Shortlist** | Developers' prioritized checklist. | Lists the top 10 unique, non-duplicate feedback comments sorted by priority score, helping teams focus on critical bottlenecks. |
+| 🗂️ **Clusters** | Structural theme categorization. | Aggregates volume metrics and average sentiments grouped by product feature categories. |
+| 📈 **Trend** | Timeline sentiment logs. | Renders interactive area charts demonstrating daily average sentiment shifts to gauge customer satisfaction over time. |
+| 📥 **Submit** | Live signal simulator. | Form allowing users to input user feedback. Submitting instantly triggers the local analytical pipeline (scoring, clustering, deduplication). |
+| ✨ **AI Summary** | Dedicated AI report generator. | Redesigned with tabs. **DB Product Lookup** queries comments from MongoDB by product name, while **Paste Raw Reviews** lets you copy-paste standard list text blocks (one per line) and summarize them directly. |
 
 ---
 
-## ⚙️ Setup Instructions
+## ⚙️ Setup & Installation
 
-1.  **Clone the Repository** and navigate to the `Backend` directory:
-    ```bash
-    cd Backend
-    ```
+### Prerequisite
+*   **MongoDB:** Must be running locally on port `27017` (e.g., `mongodb://localhost:27017/feedback`).
 
-2.  **Install Dependencies:**
-    ```bash
-    npm install
-    ```
+### Backend Setup
+1. Navigate to the `Backend` directory:
+   ```bash
+   cd Backend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in `Backend/`:
+   ```env
+   MONGO_URI=mongodb://localhost:27017/feedback
+   JWT_SECRET=super_secret_jwt_for_hackathon_2026
+   PORT=3000
+   GEMINI_API_KEY=your_google_gemini_api_key_here
+   GROK_API_KEY=your_xai_grok_api_key_here
+   ```
+4. Start development server:
+   ```bash
+   npx nodemon server.js
+   ```
 
-3.  **Environment Setup:**
-    Create a `.env` file inside `Backend/src/` with the following variables:
-    ```env
-    MONGO_URI=your_mongodb_connection_string
-    JWT_SECRET=some_long_secure_string_here
-    GEMINI_API_KEY=your_google_ai_studio_api_key
-    PORT=3000
-    ```
-
-4.  **Run Development Server:**
-    ```bash
-    npx nodemon server.js
-    ```
-
----
-
-## 🔌 API Documentation
-
-### Auth Endpoints (`/api/auth`)
-*   `POST /signup` - Registers a new user. Expects: `{ name, email, password }`
-*   `POST /login` - Login. Expects: `{ email, password }`. Returns a JWT token.
-*   `GET /me` - Fetches authenticated user info. *Requires Bearer Token.*
-
-### Feedback Endpoints (`/api/feedback`)
-*   `POST /` - Processes and creates feedback. *Requires Bearer Token.* Expects: `{ text, source, productName }`
-*   `GET /` - Fetches all feedback entries sorted by newest first.
-*   `GET /shortlist` - Fetches top 10 unique, non-duplicate feedback entries sorted by priority score.
-*   `GET /clusters` - Returns aggregation analytics of feedback counts and average sentiments grouped by cluster.
-*   `GET /trend` - Returns a daily trend showing how average sentiment shifts over time.
-
-### Summary Endpoints (`/api/summary`)
-*   `POST /generate` - Generates a 3-5 sentence summary of feedback comments. *Requires Bearer Token.* Expects: `{ productName }` or `{ feedbackIds: [...] }`.
+### Frontend Setup
+1. Navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in `frontend/`:
+   ```env
+   VITE_API_BASE_URL=http://localhost:3000
+   ```
+4. Start the Vite server:
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:5173/` in your browser.
