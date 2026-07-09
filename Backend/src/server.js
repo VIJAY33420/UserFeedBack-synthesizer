@@ -13,3 +13,5 @@ connectDb().then(() => {
     console.error('Failed to connect to the database, server not started:', err.message);
     process.exit(1);
 });
+
+// Trigger reload
