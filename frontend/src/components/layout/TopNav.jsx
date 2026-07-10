@@ -24,9 +24,9 @@ export const TopNav = () => {
         <div className="relative flex min-h-16 items-center justify-between overflow-hidden rounded-full border border-white/5 bg-white/[0.075] px-4 shadow-glass backdrop-blur-2xl sm:px-5">
           <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
           <div className="flex items-center gap-5">
-            <div className="flex flex-shrink-0 items-center gap-3 pr-6 lg:pr-12">
+            <div className="flex flex-shrink-0 items-center gap-2">
               <span 
-                className="text-xl pr-1 pt-1 font-bold pl-2 pr-2"
+                className="text-xl pr-1 pt-1 font-bold"
                 style={{ color: '#885AF0', }}
               >
                 TRAIGE
